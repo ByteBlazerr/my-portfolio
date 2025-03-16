@@ -1,9 +1,6 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { signIn, signUp } from '@/services/AuthService';
@@ -14,13 +11,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Squares } from '@/components/ui/squares-background';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useForm } from 'react-hook-form';
 
-const formSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+// Define form values type directly without zod
+type FormValues = {
+  email: string;
+  password: string;
+};
 
 const Auth = () => {
   const { t } = useLanguage();
@@ -30,11 +27,12 @@ const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
     defaultValues: {
       email: '',
       password: '',
     },
+    // Use the built-in register options for validation
+    mode: 'onBlur',
   });
 
   // Redirect if already authenticated
@@ -120,6 +118,13 @@ const Auth = () => {
               <FormField
                 control={form.control}
                 name="email"
+                rules={{
+                  required: "Email is required",
+                  pattern: {
+                    value: /\S+@\S+\.\S+/,
+                    message: "Email is invalid"
+                  }
+                }}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
@@ -144,6 +149,13 @@ const Auth = () => {
               <FormField
                 control={form.control}
                 name="password"
+                rules={{
+                  required: "Password is required",
+                  minLength: {
+                    value: 6,
+                    message: "Password must be at least 6 characters"
+                  }
+                }}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
